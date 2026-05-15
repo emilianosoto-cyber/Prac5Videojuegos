@@ -12,17 +12,16 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.Comparator;
 import java.util.List;
 
-// Nuestra ventana principal, ahora con superpoderes de graficación
+// Ventana principal con la gráfica midiendo en nanosegundos
 public class InterfazJuegos extends Application {
 
-    // Variables que vamos a usar en toda la clase
+    // Variables globales para la ventana
     private TableView<Videojuego> tabla;
     private List<Videojuego> listaJuegosOriginal;
     private BarChart<String, Number> grafica;
@@ -31,7 +30,7 @@ public class InterfazJuegos extends Application {
     public void start(Stage ventanaPrincipal) {
         ventanaPrincipal.setTitle("Visualizador y Competencia de Algoritmos");
 
-        // 1. ARMAMOS LA TABLA
+        // Armamos la tabla con sus columnas
         tabla = new TableView<>();
 
         TableColumn<Videojuego, String> colTitulo = new TableColumn<>("Título");
@@ -51,34 +50,30 @@ public class InterfazJuegos extends Application {
         tabla.getColumns().add(colCalificacion);
         tabla.getColumns().add(colReviews);
 
-        // Cargamos los datos
+        // Cargamos los datos con la ruta de tu compu
         LectorCSV lector = new LectorCSV();
         listaJuegosOriginal = lector.cargarJuegos("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\games.csv");
 
         ObservableList<Videojuego> datosParaTabla = FXCollections.observableArrayList(listaJuegosOriginal);
         tabla.setItems(datosParaTabla);
 
-        // 2. ARMAMOS LA GRÁFICA DE BARRAS
-        // El eje X será para los nombres de los algoritmos (texto)
+        // Configuramos la gráfica
         CategoryAxis ejeX = new CategoryAxis();
         ejeX.setLabel("Método de Ordenamiento");
 
-        // El eje Y será para el tiempo (números)
+        // Cambiamos la etiqueta para que indique Nanosegundos
         NumberAxis ejeY = new NumberAxis();
-        ejeY.setLabel("Tiempo (Milisegundos)");
+        ejeY.setLabel("Tiempo (Nanosegundos)");
 
         grafica = new BarChart<>(ejeX, ejeY);
         grafica.setTitle("Rendimiento de los Algoritmos");
-        // Quitamos la animación para que pinte rápido
         grafica.setAnimated(false);
 
-        // 3. EL BOTÓN QUE ARRANCA LA COMPETENCIA
+        // Botón para arrancar
         Button btnCompetir = new Button("¡Iniciar Carrera de Algoritmos (Por Reseñas)!");
-
-        // Cuando le den clic al botón, llamamos al método que hace toda la magia
         btnCompetir.setOnAction(evento -> ejecutarComparacion());
 
-        // Acomodamos todo: Botón arriba, luego la tabla y abajo la gráfica
+        // Acomodamos todo en la pantalla
         VBox contenedorPrincipal = new VBox(10);
         contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, grafica);
 
@@ -87,22 +82,17 @@ public class InterfazJuegos extends Application {
         ventanaPrincipal.show();
     }
 
-    // Este es el método estrella que toma los tiempos
+    // Método que hace las pruebas de tiempo
     private void ejecutarComparacion() {
-        // Limpiamos la gráfica por si le pican al botón varias veces
+        // Limpiamos resultados anteriores
         grafica.getData().clear();
 
-        // Creamos la serie de datos para nuestra gráfica
         XYChart.Series<String, Number> serieTiempos = new XYChart.Series<>();
         serieTiempos.setName("Tiempo de ejecución");
 
-        // Instanciamos nuestros algoritmos
         AlgoritmosOrdenamiento algoritmos = new AlgoritmosOrdenamiento();
-
-        // Creamos la regla para comparar: vamos a ordenar por el número de reseñas
         Comparator<Videojuego> compResenas = Comparator.comparingInt(Videojuego::getNumeroDeReviews);
 
-        // Para que la carrera sea justa, cada algoritmo necesita su propia copia desordenada
         int totalDatos = listaJuegosOriginal.size();
 
         // --- 1. ARRAYS.SORT NATIVO ---
@@ -110,8 +100,8 @@ public class InterfazJuegos extends Application {
         long inicioSort = System.nanoTime();
         algoritmos.usarSortNativo(arregloSort, compResenas);
         long finSort = System.nanoTime();
-        // Dividimos entre un millón para pasar de nanosegundos a milisegundos
-        long tiempoSort = (finSort - inicioSort) / 1000000;
+        // Guardamos el tiempo directo sin conversiones
+        long tiempoSort = finSort - inicioSort;
         serieTiempos.getData().add(new XYChart.Data<>("Arrays.sort", tiempoSort));
 
         // --- 2. PARALLEL SORT ---
@@ -119,7 +109,7 @@ public class InterfazJuegos extends Application {
         long inicioParallel = System.nanoTime();
         algoritmos.usarParallelSort(arregloParallel, compResenas);
         long finParallel = System.nanoTime();
-        long tiempoParallel = (finParallel - inicioParallel) / 1000000;
+        long tiempoParallel = finParallel - inicioParallel;
         serieTiempos.getData().add(new XYChart.Data<>("Parallel Sort", tiempoParallel));
 
         // --- 3. QUICKSORT ---
@@ -127,7 +117,7 @@ public class InterfazJuegos extends Application {
         long inicioQuick = System.nanoTime();
         algoritmos.quicksort(arregloQuick, 0, arregloQuick.length - 1, compResenas);
         long finQuick = System.nanoTime();
-        long tiempoQuick = (finQuick - inicioQuick) / 1000000;
+        long tiempoQuick = finQuick - inicioQuick;
         serieTiempos.getData().add(new XYChart.Data<>("Quicksort", tiempoQuick));
 
         // --- 4. MERGESORT ---
@@ -135,7 +125,7 @@ public class InterfazJuegos extends Application {
         long inicioMerge = System.nanoTime();
         algoritmos.mergesort(arregloMerge, 0, arregloMerge.length - 1, compResenas);
         long finMerge = System.nanoTime();
-        long tiempoMerge = (finMerge - inicioMerge) / 1000000;
+        long tiempoMerge = finMerge - inicioMerge;
         serieTiempos.getData().add(new XYChart.Data<>("Mergesort", tiempoMerge));
 
         // --- 5. SHELL SORT ---
@@ -143,32 +133,29 @@ public class InterfazJuegos extends Application {
         long inicioShell = System.nanoTime();
         algoritmos.shellSort(arregloShell, compResenas);
         long finShell = System.nanoTime();
-        long tiempoShell = (finShell - inicioShell) / 1000000;
+        long tiempoShell = finShell - inicioShell;
         serieTiempos.getData().add(new XYChart.Data<>("Shell Sort", tiempoShell));
 
         // --- 6. RADIX SORT ---
-        // Acuérdate que Radix no usa el comparador, lo amarramos directo a las reseñas en la fase 3
         Videojuego[] arregloRadix = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
         long inicioRadix = System.nanoTime();
         algoritmos.radixSort(arregloRadix);
         long finRadix = System.nanoTime();
-        long tiempoRadix = (finRadix - inicioRadix) / 1000000;
+        long tiempoRadix = finRadix - inicioRadix;
         serieTiempos.getData().add(new XYChart.Data<>("Radix Sort", tiempoRadix));
 
         // --- 7. SELECCIÓN DIRECTA ---
-        // OJO: Este es muy lento, si tu archivo es muy grande, la compu se puede quedar pensando un rato
         Videojuego[] arregloSeleccion = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
         long inicioSeleccion = System.nanoTime();
         algoritmos.seleccionDirecta(arregloSeleccion, compResenas);
         long finSeleccion = System.nanoTime();
-        long tiempoSeleccion = (finSeleccion - inicioSeleccion) / 1000000;
+        long tiempoSeleccion = finSeleccion - inicioSeleccion;
         serieTiempos.getData().add(new XYChart.Data<>("Selección", tiempoSeleccion));
 
-        // Finalmente, le metemos todos los resultados a la gráfica para que los dibuje
+        // Dibujamos la gráfica con los nanosegundos
         grafica.getData().add(serieTiempos);
 
-        // Y actualizamos la tabla para que muestre el arreglo ya ordenadito
-        // Usaremos el de Quicksort como muestra, pero podría ser cualquiera
+        // Actualizamos la tabla
         ObservableList<Videojuego> datosOrdenados = FXCollections.observableArrayList(arregloQuick);
         tabla.setItems(datosOrdenados);
     }
