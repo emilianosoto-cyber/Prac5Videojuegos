@@ -48,7 +48,7 @@ public class InterfazJuegos extends Application {
         // Traemos los datos usando el lector que hicimos en la fase anterior
         LectorCSV lector = new LectorCSV();
         // Ojo aquí: usa la misma ruta absoluta que te funcionó en la prueba de la Fase 1
-        List<Videojuego> listaJuegos = lector.cargarJuegos("C:\\RUTA\\COMPLETA\\A\\TU\\ARCHIVO\\games.csv");
+        List<Videojuego> listaJuegos = lector.cargarJuegos("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\games.csv");
 
         // JavaFX ocupa un tipo de lista especial para poder mostrar y actualizar la pantalla
         ObservableList<Videojuego> datosParaTabla = FXCollections.observableArrayList(listaJuegos);
