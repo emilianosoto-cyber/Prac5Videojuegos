@@ -78,6 +78,7 @@ public class InterfazJuegos extends Application {
         contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, grafica);
 
         Scene escena = new Scene(contenedorPrincipal, 900, 700);
+        escena.getStylesheets().add("file:estilo.css");
         ventanaPrincipal.setScene(escena);
         ventanaPrincipal.show();
     }
