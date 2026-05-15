@@ -9,7 +9,7 @@ public class AlgoritmosOrdenamiento {
     // Método 1: El sort() normalito que ya trae Java por defecto
     // Recibe el arreglo de juegos y el comparador que le dice qué columna revisar
     public void usarSortNativo(Videojuego[] arreglo, Comparator<Videojuego> comparador) {
-        // Java hace todo el trabajo pesado aquí
+        // Java hace  el trabajo pesado aquí
         Arrays.sort(arreglo, comparador);
     }
 

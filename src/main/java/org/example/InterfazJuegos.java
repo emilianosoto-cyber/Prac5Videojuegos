@@ -13,20 +13,20 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.Comparator;
 import java.util.List;
 
-// Ventana principal mejorada con una consola de reportes
+// Ventana principal con diseño de panel de control (dashboard)
 public class InterfazJuegos extends Application {
 
     private TableView<Videojuego> tabla;
     private List<Videojuego> listaJuegosOriginal;
     private BarChart<String, Number> grafica;
-
-    // Agregamos un área de texto para mostrar los resultados exactos
     private TextArea consolaResultados;
 
     @Override
@@ -50,7 +50,7 @@ public class InterfazJuegos extends Application {
 
         tabla.getColumns().addAll(colTitulo, colFecha, colCalificacion, colReviews);
 
-        // Cargamos los datos originales
+        // Cargamos los datos originales (verifica tu ruta)
         LectorCSV lector = new LectorCSV();
         listaJuegosOriginal = lector.cargarJuegos("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\games.csv");
 
@@ -70,23 +70,34 @@ public class InterfazJuegos extends Application {
 
         // 3. Configuramos la consola de resultados
         consolaResultados = new TextArea();
-        // La hacemos de solo lectura para que el usuario no escriba encima
         consolaResultados.setEditable(false);
-        // Le damos un tamaño razonable
-        consolaResultados.setPrefHeight(150);
-        // Un mensaje de bienvenida
+        // Le damos un ancho fijo para que no se coma a la gráfica
+        consolaResultados.setPrefWidth(350);
         consolaResultados.setText("Esperando para iniciar la competencia...\n");
 
         // Botón para arrancar
         Button btnCompetir = new Button("¡Iniciar Carrera de Algoritmos (Por Reseñas)!");
         btnCompetir.setOnAction(evento -> ejecutarComparacion());
 
-        // Acomodamos todo: Botón, Tabla, Gráfica y al final la Consola
-        VBox contenedorPrincipal = new VBox(10);
-        contenedorPrincipal.setStyle("-fx-padding: 15;");
-        contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, grafica, consolaResultados);
+        // 4. Agrupamos gráfica y consola lado a lado
+        HBox zonaResultados = new HBox(15); // El 15 es el espacio entre ambos
 
-        Scene escena = new Scene(contenedorPrincipal, 900, 800);
+        // Le decimos a JavaFX que la gráfica debe estirarse para ocupar el espacio sobrante
+        HBox.setHgrow(grafica, Priority.ALWAYS);
+        zonaResultados.getChildren().addAll(grafica, consolaResultados);
+
+        // Acomodamos todo: Botón, Tabla arriba, y la Zona de Resultados abajo
+        VBox contenedorPrincipal = new VBox(15);
+        contenedorPrincipal.setStyle("-fx-padding: 20;");
+
+        // Hacemos que la tabla y la zona de resultados se repartan el espacio vertical
+        VBox.setVgrow(tabla, Priority.ALWAYS);
+        VBox.setVgrow(zonaResultados, Priority.ALWAYS);
+
+        contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, zonaResultados);
+
+        // Hacemos la ventana un poco más ancha (1100) para que entren bien ambos componentes
+        Scene escena = new Scene(contenedorPrincipal, 1100, 700);
 
         try {
             String rutaCss = new java.io.File("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\estilo.css").toURI().toString();
@@ -106,10 +117,10 @@ public class InterfazJuegos extends Application {
 
         // Limpiamos la consola y avisamos qué vamos a hacer
         consolaResultados.setText("--- INICIANDO COMPETENCIA ---\n");
-        consolaResultados.appendText("Total de registros a ordenar: " + totalDatos + "\n\n");
+        consolaResultados.appendText("Total de registros: " + totalDatos + "\n\n");
 
         XYChart.Series<String, Number> serieTiempos = new XYChart.Series<>();
-        serieTiempos.setName("Tiempo de ejecución en nanosegundos");
+        serieTiempos.setName("Tiempo en nanosegundos");
 
         AlgoritmosOrdenamiento algoritmos = new AlgoritmosOrdenamiento();
         Comparator<Videojuego> compResenas = Comparator.comparingInt(Videojuego::getNumeroDeReviews);
@@ -121,7 +132,7 @@ public class InterfazJuegos extends Application {
         long finSort = System.nanoTime();
         long tiempoSort = finSort - inicioSort;
         serieTiempos.getData().add(new XYChart.Data<>("Arrays.sort", tiempoSort));
-        consolaResultados.appendText("✓ Arrays.sort terminó en:\t " + tiempoSort + " ns.\n");
+        consolaResultados.appendText("✓ Arrays.sort:\n   " + tiempoSort + " ns.\n");
 
         // --- 2. PARALLEL SORT ---
         Videojuego[] arregloParallel = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -130,7 +141,7 @@ public class InterfazJuegos extends Application {
         long finParallel = System.nanoTime();
         long tiempoParallel = finParallel - inicioParallel;
         serieTiempos.getData().add(new XYChart.Data<>("Parallel Sort", tiempoParallel));
-        consolaResultados.appendText("✓ Parallel Sort terminó en:\t " + tiempoParallel + " ns.\n");
+        consolaResultados.appendText("✓ Parallel Sort:\n   " + tiempoParallel + " ns.\n");
 
         // --- 3. QUICKSORT ---
         Videojuego[] arregloQuick = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -139,7 +150,7 @@ public class InterfazJuegos extends Application {
         long finQuick = System.nanoTime();
         long tiempoQuick = finQuick - inicioQuick;
         serieTiempos.getData().add(new XYChart.Data<>("Quicksort", tiempoQuick));
-        consolaResultados.appendText("✓ Quicksort terminó en:\t\t " + tiempoQuick + " ns.\n");
+        consolaResultados.appendText("✓ Quicksort:\n   " + tiempoQuick + " ns.\n");
 
         // --- 4. MERGESORT ---
         Videojuego[] arregloMerge = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -148,7 +159,7 @@ public class InterfazJuegos extends Application {
         long finMerge = System.nanoTime();
         long tiempoMerge = finMerge - inicioMerge;
         serieTiempos.getData().add(new XYChart.Data<>("Mergesort", tiempoMerge));
-        consolaResultados.appendText("✓ Mergesort terminó en:\t\t " + tiempoMerge + " ns.\n");
+        consolaResultados.appendText("✓ Mergesort:\n   " + tiempoMerge + " ns.\n");
 
         // --- 5. SHELL SORT ---
         Videojuego[] arregloShell = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -157,7 +168,7 @@ public class InterfazJuegos extends Application {
         long finShell = System.nanoTime();
         long tiempoShell = finShell - inicioShell;
         serieTiempos.getData().add(new XYChart.Data<>("Shell Sort", tiempoShell));
-        consolaResultados.appendText("✓ Shell Sort terminó en:\t " + tiempoShell + " ns.\n");
+        consolaResultados.appendText("✓ Shell Sort:\n   " + tiempoShell + " ns.\n");
 
         // --- 6. RADIX SORT ---
         Videojuego[] arregloRadix = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -166,7 +177,7 @@ public class InterfazJuegos extends Application {
         long finRadix = System.nanoTime();
         long tiempoRadix = finRadix - inicioRadix;
         serieTiempos.getData().add(new XYChart.Data<>("Radix Sort", tiempoRadix));
-        consolaResultados.appendText("✓ Radix Sort terminó en:\t " + tiempoRadix + " ns.\n");
+        consolaResultados.appendText("✓ Radix Sort:\n   " + tiempoRadix + " ns.\n");
 
         // --- 7. SELECCIÓN DIRECTA ---
         Videojuego[] arregloSeleccion = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -175,7 +186,7 @@ public class InterfazJuegos extends Application {
         long finSeleccion = System.nanoTime();
         long tiempoSeleccion = finSeleccion - inicioSeleccion;
         serieTiempos.getData().add(new XYChart.Data<>("Selección", tiempoSeleccion));
-        consolaResultados.appendText("✓ Selección terminó en:\t\t " + tiempoSeleccion + " ns.\n");
+        consolaResultados.appendText("✓ Selección:\n   " + tiempoSeleccion + " ns.\n");
 
         consolaResultados.appendText("\n--- COMPETENCIA FINALIZADA ---\n");
 

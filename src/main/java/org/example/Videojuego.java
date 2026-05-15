@@ -7,6 +7,7 @@ public class Videojuego {
     // Variables para guardar los datos de cada columna
     private String titulo;
     private String fechaLanzamiento;
+    private String desarrollador;
     private double calificacion;
     private int numeroDeReviews;
 
@@ -14,6 +15,7 @@ public class Videojuego {
     public Videojuego(String titulo, String fechaLanzamiento, double calificacion, int numeroDeReviews) {
         this.titulo = titulo;
         this.fechaLanzamiento = fechaLanzamiento;
+        this.desarrollador = desarrollador;
         this.calificacion = calificacion;
         this.numeroDeReviews = numeroDeReviews;
     }
@@ -25,6 +27,10 @@ public class Videojuego {
 
     public String getFechaLanzamiento() {
         return fechaLanzamiento;
+    }
+
+    public String getDesarrollador() {
+        return desarrollador;
     }
 
     public double getCalificacion() {
