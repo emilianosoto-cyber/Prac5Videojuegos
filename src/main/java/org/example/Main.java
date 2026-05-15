@@ -9,7 +9,7 @@ public class Main {
 
         // Le pedimos que cargue los datos del archivo que pusiste en la raíz
         // Importamos la lista (asegúrate de que IntelliJ importe java.util.List)
-        java.util.List<Videojuego> lista = lector.cargarJuegos("games.csv");
+        java.util.List<Videojuego> lista = lector.cargarJuegos("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\games.csv");
 
         // Checamos rápido si jaló o no
         if (lista.isEmpty()) {
