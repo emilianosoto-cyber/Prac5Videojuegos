@@ -75,10 +75,17 @@ public class InterfazJuegos extends Application {
 
         // Acomodamos todo en la pantalla
         VBox contenedorPrincipal = new VBox(10);
+        contenedorPrincipal.setStyle("-fx-padding: 15;");
         contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, grafica);
 
         Scene escena = new Scene(contenedorPrincipal, 900, 700);
-        escena.getStylesheets().add("file:estilo.css");
+
+        try {
+            String rutaCss = new java.io.File("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\estilo.css").toURI().toString();
+            escena.getStylesheets().add(rutaCss);
+        } catch (Exception e) {
+            System.out.println("No se pudo cargar el CSS: " + e.getMessage());
+        }
         ventanaPrincipal.setScene(escena);
         ventanaPrincipal.show();
     }
