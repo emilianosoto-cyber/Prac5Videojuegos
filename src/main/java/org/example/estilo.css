@@ -80,3 +80,11 @@
 .table-view .placeholder .label {
     -fx-text-fill: white;
 }
+
+.text-area {
+    -fx-control-inner-background: #1e1e1e;
+    -fx-text-fill: #00ce84;
+    -fx-font-family: "Consolas", monospace;
+    -fx-font-size: 14px;
+    -fx-border-color: #555555;
+}

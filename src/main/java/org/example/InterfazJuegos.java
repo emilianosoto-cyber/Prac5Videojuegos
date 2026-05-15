@@ -11,6 +11,7 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -18,19 +19,21 @@ import javafx.stage.Stage;
 import java.util.Comparator;
 import java.util.List;
 
-// Ventana principal con la gráfica midiendo en nanosegundos
+// Ventana principal mejorada con una consola de reportes
 public class InterfazJuegos extends Application {
 
-    // Variables globales para la ventana
     private TableView<Videojuego> tabla;
     private List<Videojuego> listaJuegosOriginal;
     private BarChart<String, Number> grafica;
+
+    // Agregamos un área de texto para mostrar los resultados exactos
+    private TextArea consolaResultados;
 
     @Override
     public void start(Stage ventanaPrincipal) {
         ventanaPrincipal.setTitle("Visualizador y Competencia de Algoritmos");
 
-        // Armamos la tabla con sus columnas
+        // 1. Armamos la tabla
         tabla = new TableView<>();
 
         TableColumn<Videojuego, String> colTitulo = new TableColumn<>("Título");
@@ -45,23 +48,19 @@ public class InterfazJuegos extends Application {
         TableColumn<Videojuego, Integer> colReviews = new TableColumn<>("Reseñas");
         colReviews.setCellValueFactory(new PropertyValueFactory<>("numeroDeReviews"));
 
-        tabla.getColumns().add(colTitulo);
-        tabla.getColumns().add(colFecha);
-        tabla.getColumns().add(colCalificacion);
-        tabla.getColumns().add(colReviews);
+        tabla.getColumns().addAll(colTitulo, colFecha, colCalificacion, colReviews);
 
-        // Cargamos los datos con la ruta de tu compu
+        // Cargamos los datos originales
         LectorCSV lector = new LectorCSV();
         listaJuegosOriginal = lector.cargarJuegos("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\games.csv");
 
         ObservableList<Videojuego> datosParaTabla = FXCollections.observableArrayList(listaJuegosOriginal);
         tabla.setItems(datosParaTabla);
 
-        // Configuramos la gráfica
+        // 2. Configuramos la gráfica
         CategoryAxis ejeX = new CategoryAxis();
         ejeX.setLabel("Método de Ordenamiento");
 
-        // Cambiamos la etiqueta para que indique Nanosegundos
         NumberAxis ejeY = new NumberAxis();
         ejeY.setLabel("Tiempo (Nanosegundos)");
 
@@ -69,16 +68,25 @@ public class InterfazJuegos extends Application {
         grafica.setTitle("Rendimiento de los Algoritmos");
         grafica.setAnimated(false);
 
+        // 3. Configuramos la consola de resultados
+        consolaResultados = new TextArea();
+        // La hacemos de solo lectura para que el usuario no escriba encima
+        consolaResultados.setEditable(false);
+        // Le damos un tamaño razonable
+        consolaResultados.setPrefHeight(150);
+        // Un mensaje de bienvenida
+        consolaResultados.setText("Esperando para iniciar la competencia...\n");
+
         // Botón para arrancar
         Button btnCompetir = new Button("¡Iniciar Carrera de Algoritmos (Por Reseñas)!");
         btnCompetir.setOnAction(evento -> ejecutarComparacion());
 
-        // Acomodamos todo en la pantalla
+        // Acomodamos todo: Botón, Tabla, Gráfica y al final la Consola
         VBox contenedorPrincipal = new VBox(10);
         contenedorPrincipal.setStyle("-fx-padding: 15;");
-        contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, grafica);
+        contenedorPrincipal.getChildren().addAll(btnCompetir, tabla, grafica, consolaResultados);
 
-        Scene escena = new Scene(contenedorPrincipal, 900, 700);
+        Scene escena = new Scene(contenedorPrincipal, 900, 800);
 
         try {
             String rutaCss = new java.io.File("C:\\Users\\TAPIAPC\\IdeaProjects\\Prac5Videojuegos\\src\\main\\java\\org\\example\\estilo.css").toURI().toString();
@@ -86,31 +94,34 @@ public class InterfazJuegos extends Application {
         } catch (Exception e) {
             System.out.println("No se pudo cargar el CSS: " + e.getMessage());
         }
+
         ventanaPrincipal.setScene(escena);
         ventanaPrincipal.show();
     }
 
-    // Método que hace las pruebas de tiempo
+    // Método que hace las pruebas y va reportando en la consola
     private void ejecutarComparacion() {
-        // Limpiamos resultados anteriores
         grafica.getData().clear();
+        int totalDatos = listaJuegosOriginal.size();
+
+        // Limpiamos la consola y avisamos qué vamos a hacer
+        consolaResultados.setText("--- INICIANDO COMPETENCIA ---\n");
+        consolaResultados.appendText("Total de registros a ordenar: " + totalDatos + "\n\n");
 
         XYChart.Series<String, Number> serieTiempos = new XYChart.Series<>();
-        serieTiempos.setName("Tiempo de ejecución");
+        serieTiempos.setName("Tiempo de ejecución en nanosegundos");
 
         AlgoritmosOrdenamiento algoritmos = new AlgoritmosOrdenamiento();
         Comparator<Videojuego> compResenas = Comparator.comparingInt(Videojuego::getNumeroDeReviews);
-
-        int totalDatos = listaJuegosOriginal.size();
 
         // --- 1. ARRAYS.SORT NATIVO ---
         Videojuego[] arregloSort = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
         long inicioSort = System.nanoTime();
         algoritmos.usarSortNativo(arregloSort, compResenas);
         long finSort = System.nanoTime();
-        // Guardamos el tiempo directo sin conversiones
         long tiempoSort = finSort - inicioSort;
         serieTiempos.getData().add(new XYChart.Data<>("Arrays.sort", tiempoSort));
+        consolaResultados.appendText("✓ Arrays.sort terminó en:\t " + tiempoSort + " ns.\n");
 
         // --- 2. PARALLEL SORT ---
         Videojuego[] arregloParallel = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -119,6 +130,7 @@ public class InterfazJuegos extends Application {
         long finParallel = System.nanoTime();
         long tiempoParallel = finParallel - inicioParallel;
         serieTiempos.getData().add(new XYChart.Data<>("Parallel Sort", tiempoParallel));
+        consolaResultados.appendText("✓ Parallel Sort terminó en:\t " + tiempoParallel + " ns.\n");
 
         // --- 3. QUICKSORT ---
         Videojuego[] arregloQuick = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -127,6 +139,7 @@ public class InterfazJuegos extends Application {
         long finQuick = System.nanoTime();
         long tiempoQuick = finQuick - inicioQuick;
         serieTiempos.getData().add(new XYChart.Data<>("Quicksort", tiempoQuick));
+        consolaResultados.appendText("✓ Quicksort terminó en:\t\t " + tiempoQuick + " ns.\n");
 
         // --- 4. MERGESORT ---
         Videojuego[] arregloMerge = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -135,6 +148,7 @@ public class InterfazJuegos extends Application {
         long finMerge = System.nanoTime();
         long tiempoMerge = finMerge - inicioMerge;
         serieTiempos.getData().add(new XYChart.Data<>("Mergesort", tiempoMerge));
+        consolaResultados.appendText("✓ Mergesort terminó en:\t\t " + tiempoMerge + " ns.\n");
 
         // --- 5. SHELL SORT ---
         Videojuego[] arregloShell = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -143,6 +157,7 @@ public class InterfazJuegos extends Application {
         long finShell = System.nanoTime();
         long tiempoShell = finShell - inicioShell;
         serieTiempos.getData().add(new XYChart.Data<>("Shell Sort", tiempoShell));
+        consolaResultados.appendText("✓ Shell Sort terminó en:\t " + tiempoShell + " ns.\n");
 
         // --- 6. RADIX SORT ---
         Videojuego[] arregloRadix = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -151,6 +166,7 @@ public class InterfazJuegos extends Application {
         long finRadix = System.nanoTime();
         long tiempoRadix = finRadix - inicioRadix;
         serieTiempos.getData().add(new XYChart.Data<>("Radix Sort", tiempoRadix));
+        consolaResultados.appendText("✓ Radix Sort terminó en:\t " + tiempoRadix + " ns.\n");
 
         // --- 7. SELECCIÓN DIRECTA ---
         Videojuego[] arregloSeleccion = listaJuegosOriginal.toArray(new Videojuego[totalDatos]);
@@ -159,8 +175,11 @@ public class InterfazJuegos extends Application {
         long finSeleccion = System.nanoTime();
         long tiempoSeleccion = finSeleccion - inicioSeleccion;
         serieTiempos.getData().add(new XYChart.Data<>("Selección", tiempoSeleccion));
+        consolaResultados.appendText("✓ Selección terminó en:\t\t " + tiempoSeleccion + " ns.\n");
 
-        // Dibujamos la gráfica con los nanosegundos
+        consolaResultados.appendText("\n--- COMPETENCIA FINALIZADA ---\n");
+
+        // Dibujamos la gráfica
         grafica.getData().add(serieTiempos);
 
         // Actualizamos la tabla

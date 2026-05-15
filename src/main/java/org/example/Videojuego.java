@@ -35,5 +35,4 @@ public class Videojuego {
         return numeroDeReviews;
     }
 
-    // Por ahora no ocupamos setters porque no vamos a editar la info, solo a ordenarla
 }
