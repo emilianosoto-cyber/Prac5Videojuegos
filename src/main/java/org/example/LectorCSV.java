@@ -54,7 +54,7 @@ public class LectorCSV {
             }
         } catch (Exception e) {
             // Si no encuentra el archivo o pasa algo raro, avisamos en consola
-            System.out.println("Hubo un bronca al leer el archivo: " + e.getMessage());
+            System.out.println("Hubo un error al leer el archivo: " + e.getMessage());
         }
 
         return listaJuegos;
