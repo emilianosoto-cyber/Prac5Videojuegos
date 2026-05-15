@@ -66,3 +66,17 @@
 .chart-bar {
     -fx-bar-fill: #00ce84;
 }
+
+.table-cell {
+    -fx-text-fill: white;
+    -fx-alignment: center-left;
+    -fx-font-size: 13px;
+}
+
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: white;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: white;
+}
